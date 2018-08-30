@@ -24,6 +24,8 @@ export class CorrelationRepository implements ICorrelationRepository {
   public async initialize(): Promise<void> {
     this.sequelize = await getConnection(this.config);
     await loadModels(this.sequelize);
+
+    this._correlation = this.sequelize.models.Correlation;
   }
 
   public async createEntry(correlationId: string, processModelHash: string): Promise<void> {
