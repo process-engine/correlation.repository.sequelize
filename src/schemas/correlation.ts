@@ -24,7 +24,6 @@ export function defineCorrelation(sequelize: Sequelize.Sequelize): Sequelize.Mod
     },
     correlationId: {
       type: Sequelize.STRING,
-      unique: true,
       allowNull: false,
     },
     processModelHash: {
