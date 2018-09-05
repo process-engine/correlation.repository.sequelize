@@ -5,7 +5,7 @@ const CorrelationRepository = require('./dist/commonjs/index').CorrelationReposi
 function registerInContainer(container) {
 
   container.register('CorrelationRepository', CorrelationRepository)
-    .configure('process_engine:flow_node_instance_repository')
+    .configure('process_engine:correlation_repository')
     .singleton();
 }
 
