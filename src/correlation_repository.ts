@@ -7,7 +7,7 @@ import {ICorrelationRepository, Runtime} from '@process-engine/process_engine_co
 
 import {loadModels} from './model_loader';
 
-import {ICorrelationAttributes, Correlation} from './schemas';
+import {Correlation, ICorrelationAttributes} from './schemas';
 
 export class CorrelationRepository implements ICorrelationRepository {
 
@@ -33,28 +33,29 @@ export class CorrelationRepository implements ICorrelationRepository {
     const createParams: any = {
       correlationId: correlationId,
       processModelHash: processModelHash,
-    }
+    };
 
     await this.correlation.create(createParams);
   }
 
-  public async getByCorrelationId(correlationId: string): Promise<Runtime.Types.CorrelationFromRepository> {
+  public async getByCorrelationId(correlationId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         correlationId: correlationId,
       },
+      order: [ [ 'createdAt', 'ASC' ]],
     };
 
-    const correlation: Correlation = await this.correlation.findOne(queryParams);
+    const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
 
-    if (!correlation) {
+    if (!correlations || correlations.length === 0) {
       throw new NotFoundError(`Correlation with id "${correlationId}" not found.`);
     }
 
-    const correlationRuntime: Runtime.Types.CorrelationFromRepository = this._convertTocorrelationRuntimeObject(correlation);
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
-    return correlationRuntime;
+    return correlationsRuntime;
   }
 
   /**
