@@ -30,11 +30,11 @@ export function defineCorrelation(sequelize: Sequelize.Sequelize): Sequelize.Mod
     },
     processInstanceId: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     processModelId: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     processModelHash: {
       type: Sequelize.TEXT,
