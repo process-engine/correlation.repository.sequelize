@@ -69,6 +69,45 @@ export class CorrelationRepository implements ICorrelationRepository {
     return correlationsRuntime;
   }
 
+  public async getByProcessModelId(processModelId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        processModelId: processModelId,
+      },
+      order: [ [ 'createdAt', 'ASC' ]],
+    };
+
+    const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
+
+    if (!correlations || correlations.length === 0) {
+      throw new NotFoundError(`No correlations for ProcessModel with ID "${processModelId}" found.`);
+    }
+
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsRuntime;
+  }
+
+  public async getByProcessInstanceId(processInstanceId: string): Promise<Runtime.Types.CorrelationFromRepository> {
+
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        processInstanceId: processInstanceId,
+      },
+    };
+
+    const correlation: Correlation = await this.correlation.findOne(queryParams);
+
+    if (!correlation) {
+      throw new NotFoundError(`No correlations for ProcessInstance with ID "${processInstanceId}" found.`);
+    }
+
+    const correlationRuntime: Runtime.Types.CorrelationFromRepository = this._convertTocorrelationRuntimeObject(correlation);
+
+    return correlationRuntime;
+  }
+
   public async getByProcessModelHash(processModelHash: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
