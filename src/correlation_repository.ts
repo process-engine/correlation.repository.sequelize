@@ -58,6 +58,40 @@ export class CorrelationRepository implements ICorrelationRepository {
     return correlationsRuntime;
   }
 
+  public async getByProcessModelHash(processModelHash: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        processModelHash: processModelHash,
+      },
+      order: [ [ 'createdAt', 'ASC' ]],
+    };
+
+    const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
+
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsRuntime;
+  }
+
+  public async getByProcessModelHashes(processModelHashes: Array<string>): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        processModelHash: {
+          $in: processModelHashes,
+        },
+      },
+      order: [ [ 'createdAt', 'ASC' ]],
+    };
+
+    const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
+
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsRuntime;
+  }
+
   /**
    * Takes a Correlation object as it was retrieved from the database
    * and convertes it into a Runtime object usable by the ProcessEngine.
