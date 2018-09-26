@@ -28,14 +28,25 @@ export class CorrelationRepository implements ICorrelationRepository {
     this._correlation = this.sequelize.models.Correlation;
   }
 
-  public async createEntry(correlationId: string, processModelHash: string): Promise<void> {
+  public async createEntry(correlationId: string, processInstanceId: string, processModelId: string, processModelHash: string): Promise<void> {
 
     const createParams: any = {
       correlationId: correlationId,
+      processInstanceId: processInstanceId,
+      processModelId: processModelId,
       processModelHash: processModelHash,
     };
 
     await this.correlation.create(createParams);
+  }
+
+  public async getAll(): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+
+    const correlations: Array<Correlation> = await this.correlation.findAll();
+
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsRuntime;
   }
 
   public async getByCorrelationId(correlationId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
@@ -104,6 +115,8 @@ export class CorrelationRepository implements ICorrelationRepository {
 
     const correlation: Runtime.Types.CorrelationFromRepository = new Runtime.Types.CorrelationFromRepository();
     correlation.id = dataModel.correlationId;
+    correlation.processInstanceId = dataModel.processInstanceId,
+    correlation.processModelId = dataModel.processModelId,
     correlation.processModelHash = dataModel.processModelHash;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
