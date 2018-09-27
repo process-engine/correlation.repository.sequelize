@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 
 import {NotFoundError} from '@essential-projects/errors_ts';
+import {IIdentity} from '@essential-projects/iam_contracts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
 
 import {ICorrelationRepository, Runtime} from '@process-engine/process_engine_contracts';
@@ -28,13 +29,18 @@ export class CorrelationRepository implements ICorrelationRepository {
     this._correlation = this.sequelize.models.Correlation;
   }
 
-  public async createEntry(correlationId: string, processInstanceId: string, processModelId: string, processModelHash: string): Promise<void> {
+  public async createEntry(identity: IIdentity,
+                           correlationId: string,
+                           processInstanceId: string,
+                           processModelId: string,
+                           processModelHash: string): Promise<void> {
 
     const createParams: any = {
       correlationId: correlationId,
       processInstanceId: processInstanceId,
       processModelId: processModelId,
       processModelHash: processModelHash,
+      identity: identity,
     };
 
     await this.correlation.create(createParams);
@@ -157,6 +163,7 @@ export class CorrelationRepository implements ICorrelationRepository {
     correlation.processInstanceId = dataModel.processInstanceId,
     correlation.processModelId = dataModel.processModelId,
     correlation.processModelHash = dataModel.processModelHash;
+    correlation.identity = dataModel.identity ? JSON.parse(dataModel.identity) : undefined;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
 
