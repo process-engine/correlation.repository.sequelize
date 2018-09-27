@@ -40,7 +40,7 @@ export class CorrelationRepository implements ICorrelationRepository {
       processInstanceId: processInstanceId,
       processModelId: processModelId,
       processModelHash: processModelHash,
-      identity: identity,
+      identity: JSON.stringify(identity),
     };
 
     await this.correlation.create(createParams);
