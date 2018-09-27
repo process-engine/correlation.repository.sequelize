@@ -66,7 +66,8 @@ export class CorrelationRepository implements ICorrelationRepository {
 
     const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
 
-    if (!correlations || correlations.length === 0) {
+    const noCorrelationsFound: boolean = !correlations || correlations.length === 0;
+    if (noCorrelationsFound) {
       throw new NotFoundError(`Correlation with id "${correlationId}" not found.`);
     }
 
@@ -86,7 +87,8 @@ export class CorrelationRepository implements ICorrelationRepository {
 
     const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
 
-    if (!correlations || correlations.length === 0) {
+    const noCorrelationsFound: boolean = !correlations || correlations.length === 0;
+    if (noCorrelationsFound) {
       throw new NotFoundError(`No correlations for ProcessModel with ID "${processModelId}" found.`);
     }
 
