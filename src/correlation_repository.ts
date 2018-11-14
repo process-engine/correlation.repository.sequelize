@@ -97,6 +97,17 @@ export class CorrelationRepository implements ICorrelationRepository {
     return correlationsRuntime;
   }
 
+  public async deleteCorrelationByProcessModelId(processModelId: string): Promise<void> {
+
+    const queryParams: Sequelize.DestroyOptions = {
+      where: {
+        processModelId: processModelId,
+      },
+    };
+
+    await this.correlation.destroy(queryParams);
+  }
+
   public async getByProcessInstanceId(processInstanceId: string): Promise<Runtime.Types.CorrelationFromRepository> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
