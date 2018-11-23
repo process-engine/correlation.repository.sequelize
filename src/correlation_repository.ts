@@ -33,12 +33,14 @@ export class CorrelationRepository implements ICorrelationRepository {
                            correlationId: string,
                            processInstanceId: string,
                            processModelId: string,
-                           processModelHash: string): Promise<void> {
+                           processModelHash: string,
+                           parentProcessInstanceId?: string): Promise<void> {
 
     const createParams: any = {
       correlationId: correlationId,
       processInstanceId: processInstanceId,
       processModelId: processModelId,
+      parentProcessInstanceId: parentProcessInstanceId,
       processModelHash: processModelHash,
       identity: JSON.stringify(identity),
     };
@@ -97,17 +99,6 @@ export class CorrelationRepository implements ICorrelationRepository {
     return correlationsRuntime;
   }
 
-  public async deleteCorrelationByProcessModelId(processModelId: string): Promise<void> {
-
-    const queryParams: Sequelize.DestroyOptions = {
-      where: {
-        processModelId: processModelId,
-      },
-    };
-
-    await this.correlation.destroy(queryParams);
-  }
-
   public async getByProcessInstanceId(processInstanceId: string): Promise<Runtime.Types.CorrelationFromRepository> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
@@ -125,6 +116,33 @@ export class CorrelationRepository implements ICorrelationRepository {
     const correlationRuntime: Runtime.Types.CorrelationFromRepository = this._convertTocorrelationRuntimeObject(correlation);
 
     return correlationRuntime;
+  }
+
+  public async getSubprocessesForProcessInstance(processInstanceId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        parentProcessInstanceId: processInstanceId,
+      },
+      order: [ [ 'createdAt', 'ASC' ]],
+    };
+
+    const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
+
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsRuntime;
+  }
+
+  public async deleteCorrelationByProcessModelId(processModelId: string): Promise<void> {
+
+    const queryParams: Sequelize.DestroyOptions = {
+      where: {
+        processModelId: processModelId,
+      },
+    };
+
+    await this.correlation.destroy(queryParams);
   }
 
   /**
