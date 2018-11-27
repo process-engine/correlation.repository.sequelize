@@ -3,7 +3,7 @@
   "publishConfig": {
     "registry": "https://www.npmjs.com"
   },
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Uses sequelize to access and manipulate correlation data.",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
@@ -16,7 +16,7 @@
     "@essential-projects/errors_ts": "~1.4.0",
     "@essential-projects/iam_contracts": "~3.2.0",
     "@essential-projects/sequelize_connection_manager": "~1.1.0",
-    "@process-engine/process_engine_contracts": "~34.0.0",
+    "@process-engine/process_engine_contracts": "~34.1.0",
     "@types/clone": "0.1.30",
     "clone": "2.1.2",
     "loggerhythm": "3.0.3",
@@ -27,8 +27,8 @@
     "@types/node": "10.12.2",
     "@types/sequelize": "4.27.23",
     "gulp": "4.0.0",
-    "gulptraum": "3.0.0",
-    "gulptraum-typescript": "2.0.0",
+    "gulptraum": "~3.0.0",
+    "gulptraum-typescript": "~2.0.0",
     "moment": "2.22.2",
     "tsconfig": "7.0.0",
     "tslint": "5.11.0",
@@ -36,7 +36,6 @@
   },
   "scripts": {
     "build": "gulp build",
-    "build-doc": "gulp doc",
     "lint": "gulp lint",
     "prepare": "npm run build",
     "test": "gulp test"
