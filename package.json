@@ -15,7 +15,7 @@
   "dependencies": {
     "@essential-projects/errors_ts": "~1.4.0",
     "@essential-projects/iam_contracts": "~3.2.0",
-    "@essential-projects/sequelize_connection_manager": "~1.1.0",
+    "@essential-projects/sequelize_connection_manager": "~2.0.0",
     "@process-engine/process_engine_contracts": "~34.1.0",
     "@types/clone": "0.1.30",
     "clone": "2.1.2",
