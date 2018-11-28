@@ -5,6 +5,7 @@ const CorrelationRepository = require('./dist/commonjs/index').CorrelationReposi
 function registerInContainer(container) {
 
   container.register('CorrelationRepository', CorrelationRepository)
+    .dependencies('SequelizeConnectionManager')
     .configure('process_engine:correlation_repository')
     .singleton();
 }
