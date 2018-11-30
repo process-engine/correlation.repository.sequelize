@@ -1,7 +1,6 @@
 import * as Sequelize from 'sequelize';
 
 export interface ICorrelationAttributes {
-  id: string;
   correlationId: string;
   processModelHash: string;
   processModelId: string;
@@ -23,11 +22,6 @@ export type Correlation = Sequelize.Instance<ICorrelationAttributes> & ICorrelat
 export function defineCorrelation(sequelize: Sequelize.Sequelize): Sequelize.Model<Correlation, ICorrelationAttributes> {
 
   const attributes: SequelizeAttributes<ICorrelationAttributes> = {
-    id: {
-      type: Sequelize.UUID,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4,
-    },
     correlationId: {
       type: Sequelize.STRING,
       allowNull: false,
