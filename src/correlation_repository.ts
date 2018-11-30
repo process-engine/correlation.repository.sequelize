@@ -2,7 +2,7 @@ import * as Sequelize from 'sequelize';
 
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
-import {getConnection} from '@essential-projects/sequelize_connection_manager';
+import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 
 import {ICorrelationRepository, Runtime} from '@process-engine/process_engine_contracts';
 
@@ -15,18 +15,22 @@ export class CorrelationRepository implements ICorrelationRepository {
   public config: Sequelize.Options;
 
   private _correlation: Sequelize.Model<Correlation, ICorrelationAttributes>;
+  private _sequelize: Sequelize.Sequelize;
+  private _connectionManager: SequelizeConnectionManager;
 
-  private sequelize: Sequelize.Sequelize;
+  constructor(connectionManager: SequelizeConnectionManager) {
+    this._connectionManager = connectionManager;
+  }
 
   private get correlation(): Sequelize.Model<Correlation, ICorrelationAttributes> {
     return this._correlation;
   }
 
   public async initialize(): Promise<void> {
-    this.sequelize = await getConnection(this.config);
-    await loadModels(this.sequelize);
+    this._sequelize = await this._connectionManager.getConnection(this.config);
+    await loadModels(this._sequelize);
 
-    this._correlation = this.sequelize.models.Correlation;
+    this._correlation = this._sequelize.models.Correlation;
   }
 
   public async createEntry(identity: IIdentity,
