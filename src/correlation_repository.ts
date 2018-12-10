@@ -1,5 +1,7 @@
+import {Logger} from 'loggerhythm';
 import * as Sequelize from 'sequelize';
 
+import {IDisposable} from '@essential-projects/bootstrapper_contracts';
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
@@ -10,7 +12,9 @@ import {loadModels} from './model_loader';
 
 import {Correlation, ICorrelationAttributes} from './schemas';
 
-export class CorrelationRepository implements ICorrelationRepository {
+const logger: Logger = new Logger('processengine:persistence:correlation_repository');
+
+export class CorrelationRepository implements ICorrelationRepository, IDisposable {
 
   public config: Sequelize.Options;
 
@@ -27,10 +31,25 @@ export class CorrelationRepository implements ICorrelationRepository {
   }
 
   public async initialize(): Promise<void> {
+    logger.verbose('Initializing Sequelize connection and loading models...');
+    const connectionAlreadyEstablished: boolean = this._sequelize !== undefined;
+    if (connectionAlreadyEstablished) {
+      logger.verbose('Repository already initialized.');
+
+      return;
+    }
     this._sequelize = await this._connectionManager.getConnection(this.config);
     await loadModels(this._sequelize);
 
     this._correlation = this._sequelize.models.Correlation;
+    logger.verbose('Done.');
+  }
+
+  public async dispose(): Promise<void> {
+    logger.verbose('Disposing connection');
+    await this._connectionManager.destroyConnection(this.config);
+    this._sequelize = undefined;
+    logger.verbose('done');
   }
 
   public async createEntry(identity: IIdentity,
