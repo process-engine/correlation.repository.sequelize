@@ -180,9 +180,10 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const correlation: Runtime.Types.CorrelationFromRepository = new Runtime.Types.CorrelationFromRepository();
     correlation.id = dataModel.correlationId;
-    correlation.processInstanceId = dataModel.processInstanceId,
-    correlation.processModelId = dataModel.processModelId,
+    correlation.processInstanceId = dataModel.processInstanceId;
+    correlation.processModelId = dataModel.processModelId;
     correlation.processModelHash = dataModel.processModelHash;
+    correlation.parentProcessInstanceId = dataModel.parentProcessInstanceId;
     correlation.identity = dataModel.identity ? JSON.parse(dataModel.identity) : undefined;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
