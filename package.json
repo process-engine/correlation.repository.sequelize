@@ -17,8 +17,8 @@
     "@essential-projects/errors_ts": "~1.4.0",
     "@essential-projects/iam_contracts": "~3.4.0",
     "@essential-projects/sequelize_connection_manager": "~2.1.0",
-    "@process-engine/process_engine_contracts": "~38.0.0",
-    "@types/clone": "^0.1.30",
+    "@process-engine/process_engine_contracts": "feature~add_correlation_state_flag",
+    "@types/clone": ^0.1.30",
     "clone": "~2.1.2",
     "loggerhythm": "~3.0.3",
     "sequelize": "~4.42.0"
