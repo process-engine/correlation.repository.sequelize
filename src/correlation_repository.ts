@@ -169,6 +169,29 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await this.correlation.destroy(queryParams);
   }
 
+  public async setNewCorrelationState(correlationId: string, newState: Runtime.Types.CorrelationState): Promise<void> {
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        correlationId: correlationId,
+      },
+    };
+
+    const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
+    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
+
+    if (noMatchingCorrelationFound) {
+      throw new NotFoundError(`No matching correlation with ID ${correlationId}`);
+    }
+
+    correlationWithId.state = newState;
+
+    const updateValues: any = {
+      state: newState,
+    };
+
+    await correlationWithId.update(updateValues);
+  }
+
   /**
    * Takes a Correlation object as it was retrieved from the database
    * and convertes it into a Runtime object usable by the ProcessEngine.
