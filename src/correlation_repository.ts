@@ -169,7 +169,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await this.correlation.destroy(queryParams);
   }
 
-  public async setNewCorrelationState(correlationId: string, newState: Runtime.Types.CorrelationState): Promise<void> {
+  public async finishCorrelation(correlationId: string): Promise<void> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         correlationId: correlationId,
@@ -183,7 +183,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`No matching correlation with ID ${correlationId}`);
     }
 
-    correlationWithId.state = newState;
+    correlationWithId.state = Runtime.Types.CorrelationState.finished;
 
     await correlationWithId.save();
   }
