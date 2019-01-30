@@ -170,7 +170,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await this.correlation.destroy(queryParams);
   }
 
-  public async getCorrelationsForState(state: Runtime.Types.CorrelationState): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+  public async getCorrelationsByState(state: Runtime.Types.CorrelationState): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         state: state,
@@ -203,7 +203,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await correlationWithId.save();
   }
 
-  public async finishWithError(correlationId: string, error?: Error): Promise<void> {
+  public async finishWithError(correlationId: string, error: Error): Promise<void> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         correlationId: correlationId,
@@ -218,11 +218,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     }
 
     correlationWithId.state = Runtime.Types.CorrelationState.error;
-
-    const errorIsGiven: boolean = error !== undefined;
-    if (errorIsGiven) {
-      correlationWithId.error = JSON.stringify(error);
-    }
+    correlationWithId.error = JSON.stringify(error);
 
     await correlationWithId.save();
   }
