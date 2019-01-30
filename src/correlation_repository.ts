@@ -185,11 +185,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     correlationWithId.state = newState;
 
-    const updateValues: any = {
-      state: newState,
-    };
-
-    await correlationWithId.update(updateValues);
+    await correlationWithId.save();
   }
 
   /**
