@@ -66,6 +66,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       parentProcessInstanceId: parentProcessInstanceId,
       processModelHash: processModelHash,
       identity: JSON.stringify(identity),
+      state: Runtime.Types.CorrelationState.running,
     };
 
     await this.correlation.create(createParams);
