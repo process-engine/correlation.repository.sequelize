@@ -170,6 +170,20 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await this.correlation.destroy(queryParams);
   }
 
+  public async getCorrelationsForState(state: Runtime.Types.CorrelationState): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        state: state,
+      },
+    };
+
+    const correlationsWithType: Array<Correlation> = await this.correlation.findAll(queryParams);
+    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> =
+      correlationsWithType.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsRuntime;
+  }
+
   public async finishCorrelation(correlationId: string): Promise<void> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
