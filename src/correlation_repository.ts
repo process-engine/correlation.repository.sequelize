@@ -67,7 +67,6 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       processModelHash: processModelHash,
       identity: JSON.stringify(identity),
       state: Runtime.Types.CorrelationState.running,
-      error: null,
     };
 
     await this.correlation.create(createParams);
@@ -178,10 +177,10 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     const correlationsWithType: Array<Correlation> = await this.correlation.findAll(queryParams);
-    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> =
+    const matchingCorrelations: Array<Runtime.Types.CorrelationFromRepository> =
       correlationsWithType.map(this._convertTocorrelationRuntimeObject.bind(this));
 
-    return correlationsRuntime;
+    return matchingCorrelations;
   }
 
   public async finishCorrelation(correlationId: string): Promise<void> {
@@ -192,8 +191,8 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
-    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
 
+    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
     if (noMatchingCorrelationFound) {
       throw new NotFoundError(`No matching correlation with ID ${correlationId}`);
     }
@@ -211,8 +210,8 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
-    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
 
+    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
     if (noMatchingCorrelationFound) {
       throw new NotFoundError(`No matching correlation with ID ${correlationId}`);
     }
@@ -242,6 +241,8 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     correlation.identity = dataModel.identity ? JSON.parse(dataModel.identity) : undefined;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
+    correlation.state = dataModel.state;
+    correlation.error = dataModel.error ? JSON.parse(dataModel.error) : undefined;
 
     return correlation;
   }
