@@ -194,7 +194,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
     if (noMatchingCorrelationFound) {
-      throw new NotFoundError(`No matching correlation with ID ${correlationId}`);
+      throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
     }
 
     correlationWithId.state = Runtime.Types.CorrelationState.finished;
