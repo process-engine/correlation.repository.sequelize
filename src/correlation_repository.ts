@@ -176,11 +176,11 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const correlationsWithType: Array<Correlation> = await this.correlation.findAll(queryParams);
-    const matchingCorrelations: Array<Runtime.Types.CorrelationFromRepository> =
-      correlationsWithType.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const matchingCorrelations: Array<Correlation> = await this.correlation.findAll(queryParams);
+    const correlationsWithState: Array<Runtime.Types.CorrelationFromRepository> =
+      matchingCorrelations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
-    return matchingCorrelations;
+    return correlationsWithState;
   }
 
   public async finishCorrelation(correlationId: string): Promise<void> {
