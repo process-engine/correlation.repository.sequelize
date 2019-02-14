@@ -66,6 +66,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       parentProcessInstanceId: parentProcessInstanceId,
       processModelHash: processModelHash,
       identity: JSON.stringify(identity),
+      state: Runtime.Types.CorrelationState.running,
     };
 
     await this.correlation.create(createParams);
@@ -168,6 +169,59 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await this.correlation.destroy(queryParams);
   }
 
+  public async getCorrelationsByState(state: Runtime.Types.CorrelationState): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        state: state,
+      },
+    };
+
+    const matchingCorrelations: Array<Correlation> = await this.correlation.findAll(queryParams);
+    const correlationsWithState: Array<Runtime.Types.CorrelationFromRepository> =
+      matchingCorrelations.map(this._convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsWithState;
+  }
+
+  public async finishCorrelation(correlationId: string): Promise<void> {
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        correlationId: correlationId,
+      },
+    };
+
+    const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
+
+    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
+    if (noMatchingCorrelationFound) {
+      throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
+    }
+
+    correlationWithId.state = Runtime.Types.CorrelationState.finished;
+
+    await correlationWithId.save();
+  }
+
+  public async finishWithError(correlationId: string, error: Error): Promise<void> {
+    const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
+      where: {
+        correlationId: correlationId,
+      },
+    };
+
+    const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
+
+    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
+    if (noMatchingCorrelationFound) {
+      throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
+    }
+
+    correlationWithId.state = Runtime.Types.CorrelationState.error;
+    correlationWithId.error = JSON.stringify(error);
+
+    await correlationWithId.save();
+  }
+
   /**
    * Takes a Correlation object as it was retrieved from the database
    * and convertes it into a Runtime object usable by the ProcessEngine.
@@ -187,6 +241,8 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     correlation.identity = dataModel.identity ? JSON.parse(dataModel.identity) : undefined;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
+    correlation.state = dataModel.state;
+    correlation.error = dataModel.error ? JSON.parse(dataModel.error) : undefined;
 
     return correlation;
   }
