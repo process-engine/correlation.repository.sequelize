@@ -17,7 +17,7 @@
     "@essential-projects/errors_ts": "~1.4.0",
     "@essential-projects/iam_contracts": "~3.4.0",
     "@essential-projects/sequelize_connection_manager": "~2.1.0",
-    "@process-engine/process_engine_contracts": "~39.0.0",
+    "@process-engine/correlation.contracts": "feature~initial_implementation",
     "@types/clone": "^0.1.30",
     "clone": "~2.1.2",
     "loggerhythm": "~3.0.3",
