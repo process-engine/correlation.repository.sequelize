@@ -6,7 +6,7 @@ import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 
-import {ICorrelationRepository, Runtime} from '@process-engine/process_engine_contracts';
+import {CorrelationFromRepository, CorrelationState, ICorrelationRepository} from '@process-engine/correlation.contracts';
 
 import {loadModels} from './model_loader';
 
@@ -66,22 +66,22 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       parentProcessInstanceId: parentProcessInstanceId,
       processModelHash: processModelHash,
       identity: JSON.stringify(identity),
-      state: Runtime.Types.CorrelationState.running,
+      state: CorrelationState.running,
     };
 
     await this.correlation.create(createParams);
   }
 
-  public async getAll(): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+  public async getAll(): Promise<Array<CorrelationFromRepository>> {
 
     const correlations: Array<Correlation> = await this.correlation.findAll();
 
-    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByCorrelationId(correlationId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+  public async getByCorrelationId(correlationId: string): Promise<Array<CorrelationFromRepository>> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
@@ -97,12 +97,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`Correlation with id "${correlationId}" not found.`);
     }
 
-    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByProcessModelId(processModelId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+  public async getByProcessModelId(processModelId: string): Promise<Array<CorrelationFromRepository>> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
@@ -118,12 +118,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`No correlations for ProcessModel with ID "${processModelId}" found.`);
     }
 
-    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByProcessInstanceId(processInstanceId: string): Promise<Runtime.Types.CorrelationFromRepository> {
+  public async getByProcessInstanceId(processInstanceId: string): Promise<CorrelationFromRepository> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
@@ -137,12 +137,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`No correlations for ProcessInstance with ID "${processInstanceId}" found.`);
     }
 
-    const correlationRuntime: Runtime.Types.CorrelationFromRepository = this._convertTocorrelationRuntimeObject(correlation);
+    const correlationRuntime: CorrelationFromRepository = this._convertTocorrelationRuntimeObject(correlation);
 
     return correlationRuntime;
   }
 
-  public async getSubprocessesForProcessInstance(processInstanceId: string): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+  public async getSubprocessesForProcessInstance(processInstanceId: string): Promise<Array<CorrelationFromRepository>> {
 
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
@@ -153,7 +153,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const correlations: Array<Correlation> = await this.correlation.findAll(queryParams);
 
-    const correlationsRuntime: Array<Runtime.Types.CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
@@ -169,7 +169,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await this.correlation.destroy(queryParams);
   }
 
-  public async getCorrelationsByState(state: Runtime.Types.CorrelationState): Promise<Array<Runtime.Types.CorrelationFromRepository>> {
+  public async getCorrelationsByState(state: CorrelationState): Promise<Array<CorrelationFromRepository>> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         state: state,
@@ -177,7 +177,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     const matchingCorrelations: Array<Correlation> = await this.correlation.findAll(queryParams);
-    const correlationsWithState: Array<Runtime.Types.CorrelationFromRepository> =
+    const correlationsWithState: Array<CorrelationFromRepository> =
       matchingCorrelations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsWithState;
@@ -197,7 +197,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
     }
 
-    correlationWithId.state = Runtime.Types.CorrelationState.finished;
+    correlationWithId.state = CorrelationState.finished;
 
     await correlationWithId.save();
   }
@@ -216,7 +216,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
     }
 
-    correlationWithId.state = Runtime.Types.CorrelationState.error;
+    correlationWithId.state = CorrelationState.error;
     correlationWithId.error = JSON.stringify(error);
 
     await correlationWithId.save();
@@ -230,9 +230,9 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
    * @returns           The ProcessEngine runtime object describing a
    *                    correlation.
    */
-  private _convertTocorrelationRuntimeObject(dataModel: Correlation): Runtime.Types.CorrelationFromRepository {
+  private _convertTocorrelationRuntimeObject(dataModel: Correlation): CorrelationFromRepository {
 
-    const correlation: Runtime.Types.CorrelationFromRepository = new Runtime.Types.CorrelationFromRepository();
+    const correlation: CorrelationFromRepository = new CorrelationFromRepository();
     correlation.id = dataModel.correlationId;
     correlation.processInstanceId = dataModel.processInstanceId;
     correlation.processModelId = dataModel.processModelId;
