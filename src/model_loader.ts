@@ -1,9 +1,9 @@
 import * as Sequelize from 'sequelize';
 
 import {
+  Correlation,
   defineCorrelation,
   ICorrelationAttributes,
-  Correlation,
 } from './schemas/index';
 
 export async function loadModels(sequelizeInstance: Sequelize.Sequelize): Promise<Sequelize.Model<Correlation, ICorrelationAttributes>> {
