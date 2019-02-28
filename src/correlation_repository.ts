@@ -15,7 +15,6 @@ import {Correlation, ICorrelationAttributes} from './schemas';
 const logger: Logger = new Logger('processengine:persistence:correlation_repository');
 
 export class CorrelationRepository implements ICorrelationRepository, IDisposable {
-
   public config: Sequelize.Options;
 
   private _correlation: Sequelize.Model<Correlation, ICorrelationAttributes>;
@@ -52,12 +51,14 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     logger.verbose('Done.');
   }
 
-  public async createEntry(identity: IIdentity,
-                           correlationId: string,
-                           processInstanceId: string,
-                           processModelId: string,
-                           processModelHash: string,
-                           parentProcessInstanceId?: string): Promise<void> {
+  public async createEntry(
+    identity: IIdentity,
+    correlationId: string,
+    processInstanceId: string,
+    processModelId: string,
+    processModelHash: string,
+    parentProcessInstanceId?: string,
+  ): Promise<void> {
 
     const createParams: any = {
       correlationId: correlationId,
@@ -183,43 +184,45 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     return correlationsWithState;
   }
 
-  public async finishCorrelation(correlationId: string): Promise<void> {
+  public async finishProcessInstanceInCorrelation(correlationId: string, processInstanceId: string): Promise<void> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         correlationId: correlationId,
+        processInstanceId: processInstanceId,
       },
     };
 
-    const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
+    const matchingCorrelation: Correlation = await this.correlation.findOne(queryParams);
 
-    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
+    const noMatchingCorrelationFound: boolean = matchingCorrelation === undefined;
     if (noMatchingCorrelationFound) {
-      throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
+      throw new NotFoundError(`No ProcessInstance '${processInstanceId}' in Correlation ${correlationId} found!`);
     }
 
-    correlationWithId.state = CorrelationState.finished;
+    matchingCorrelation.state = CorrelationState.finished;
 
-    await correlationWithId.save();
+    await matchingCorrelation.save();
   }
 
-  public async finishWithError(correlationId: string, error: Error): Promise<void> {
+  public async finishProcessInstanceInCorrelationWithError(correlationId: string, processInstanceId: string, error: Error): Promise<void> {
     const queryParams: Sequelize.FindOptions<ICorrelationAttributes> = {
       where: {
         correlationId: correlationId,
+        processInstanceId: processInstanceId,
       },
     };
 
-    const correlationWithId: Correlation = await this.correlation.findOne(queryParams);
+    const matchingCorrelation: Correlation = await this.correlation.findOne(queryParams);
 
-    const noMatchingCorrelationFound: boolean = correlationWithId === undefined;
+    const noMatchingCorrelationFound: boolean = matchingCorrelation === undefined;
     if (noMatchingCorrelationFound) {
-      throw new NotFoundError(`No matching correlation with ID ${correlationId} found!`);
+      throw new NotFoundError(`No ProcessInstance '${processInstanceId}' in Correlation ${correlationId} found!`);
     }
 
-    correlationWithId.state = CorrelationState.error;
-    correlationWithId.error = JSON.stringify(error);
+    matchingCorrelation.state = CorrelationState.error;
+    matchingCorrelation.error = JSON.stringify(error);
 
-    await correlationWithId.save();
+    await matchingCorrelation.save();
   }
 
   /**
