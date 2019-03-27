@@ -2,7 +2,7 @@ import {Logger} from 'loggerhythm';
 import * as Sequelize from 'sequelize';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
-import {NotFoundError, BaseError} from '@essential-projects/errors_ts';
+import {BaseError, isEssentialProjectsError, NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 
@@ -220,9 +220,24 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     }
 
     matchingCorrelation.state = CorrelationState.error;
-    matchingCorrelation.error = JSON.stringify(error);
+    matchingCorrelation.error = this._serializeError(error);
 
     await matchingCorrelation.save();
+  }
+
+  private _serializeError(error: any): string {
+
+    const errorIsFromEssentialProjects: boolean = isEssentialProjectsError(error);
+    if (errorIsFromEssentialProjects) {
+      return (error as BaseError).serialize();
+    }
+
+    const errorIsString: boolean = typeof error === 'string';
+    if (errorIsString) {
+      return error;
+    }
+
+    return JSON.stringify(error);
   }
 
   /**
