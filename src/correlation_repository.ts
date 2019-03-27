@@ -2,7 +2,7 @@ import {Logger} from 'loggerhythm';
 import * as Sequelize from 'sequelize';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
-import {NotFoundError} from '@essential-projects/errors_ts';
+import {NotFoundError, BaseError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 
@@ -241,12 +241,40 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     correlation.processModelId = dataModel.processModelId;
     correlation.processModelHash = dataModel.processModelHash;
     correlation.parentProcessInstanceId = dataModel.parentProcessInstanceId || undefined;
-    correlation.identity = dataModel.identity ? JSON.parse(dataModel.identity) : undefined;
+    correlation.identity = dataModel.identity ? this._tryParse(dataModel.identity) : undefined;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
     correlation.state = dataModel.state;
-    correlation.error = dataModel.error ? JSON.parse(dataModel.error) : undefined;
+
+    const dataModelHasError: boolean = dataModel.error !== undefined;
+    if (dataModelHasError) {
+
+      const essentialProjectsError: Error = this._tryDeserializeEssentialProjectsError(dataModel.error);
+
+      const errorIsFromEssentialProjects: boolean = essentialProjectsError !== undefined;
+
+      correlation.error = errorIsFromEssentialProjects
+        ? essentialProjectsError
+        : this._tryParse(dataModel.error);
+    }
 
     return correlation;
+  }
+
+  private _tryParse(value: string): any {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      // Value is not a JSON - return it as it is.
+      return value;
+    }
+  }
+
+  private _tryDeserializeEssentialProjectsError(value: string): Error {
+    try {
+      return BaseError.deserialize(value);
+    } catch (error) {
+      return undefined;
+    }
   }
 }
