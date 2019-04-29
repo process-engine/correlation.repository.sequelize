@@ -41,7 +41,7 @@ export class Correlation extends Model<Correlation> implements ICorrelationAttri
   @Column(DataType.TEXT)
   public identity: string;
 
-  @Column
+  @Column(DataType.STRING)
   @AllowNull(false)
   public state: CorrelationState;
 
