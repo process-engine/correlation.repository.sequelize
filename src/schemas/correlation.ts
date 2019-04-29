@@ -10,9 +10,11 @@ export class CorrelationModel extends Model<CorrelationModel> {
   public correlationId: string;
 
   @Column
+  @AllowNull(true)
   public processInstanceId: string;
 
   @Column
+  @AllowNull(true)
   public processModelId: string;
 
   @Column({type: DataType.TEXT})
@@ -20,6 +22,7 @@ export class CorrelationModel extends Model<CorrelationModel> {
   public processModelHash: string;
 
   @Column(DataType.TEXT)
+  @AllowNull(true)
   public identity: string;
 
   @Column(DataType.STRING)
