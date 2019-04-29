@@ -5,32 +5,32 @@ import {CorrelationState} from '@process-engine/correlation.contracts';
 @Table({modelName: 'Correlation', tableName: 'Correlation', version: true})
 export class CorrelationModel extends Model<CorrelationModel> {
 
-  @Column
   @AllowNull(false)
+  @Column
   public correlationId: string;
 
-  @Column
   @AllowNull(true)
+  @Column
   public processInstanceId: string;
 
-  @Column
   @AllowNull(true)
+  @Column
   public processModelId: string;
 
-  @Column({type: DataType.TEXT})
   @AllowNull(false)
+  @Column({type: DataType.TEXT})
   public processModelHash: string;
 
-  @Column(DataType.TEXT)
   @AllowNull(true)
+  @Column(DataType.TEXT)
   public identity: string;
 
-  @Column(DataType.STRING)
   @AllowNull(false)
+  @Column(DataType.STRING)
   public state: CorrelationState;
 
-  @Column(DataType.TEXT)
   @AllowNull(false)
+  @Column(DataType.TEXT)
   public error?: string;
 
   @Column
