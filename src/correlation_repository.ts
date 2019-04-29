@@ -10,7 +10,7 @@ import {SequelizeConnectionManager} from '@essential-projects/sequelize_connecti
 
 import {CorrelationFromRepository, CorrelationState, ICorrelationRepository} from '@process-engine/correlation.contracts';
 
-import {Correlation} from './schemas';
+import {CorrelationModel} from './schemas';
 
 const logger: Logger = new Logger('processengine:persistence:correlation_repository');
 
@@ -34,7 +34,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     }
     this._sequelize = await this._connectionManager.getConnection(this.config);
 
-    this._sequelize.addModels([Correlation]);
+    this._sequelize.addModels([CorrelationModel]);
     await this._sequelize.sync();
 
     logger.verbose('Done.');
@@ -66,12 +66,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       state: CorrelationState.running,
     };
 
-    await Correlation.create(createParams);
+    await CorrelationModel.create(createParams);
   }
 
   public async getAll(): Promise<Array<CorrelationFromRepository>> {
 
-    const correlations: Array<Correlation> = await Correlation.findAll();
+    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll();
 
     const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
@@ -87,7 +87,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       order: [ [ 'createdAt', 'ASC' ]],
     };
 
-    const correlations: Array<Correlation> = await Correlation.findAll(queryParams);
+    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
 
     const noCorrelationsFound: boolean = !correlations || correlations.length === 0;
     if (noCorrelationsFound) {
@@ -108,7 +108,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       order: [ [ 'createdAt', 'ASC' ]],
     };
 
-    const correlations: Array<Correlation> = await Correlation.findAll(queryParams);
+    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
 
     const noCorrelationsFound: boolean = !correlations || correlations.length === 0;
     if (noCorrelationsFound) {
@@ -128,7 +128,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const correlation: Correlation = await Correlation.findOne(queryParams);
+    const correlation: CorrelationModel = await CorrelationModel.findOne(queryParams);
 
     if (!correlation) {
       throw new NotFoundError(`No correlations for ProcessInstance with ID "${processInstanceId}" found.`);
@@ -148,7 +148,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       order: [ [ 'createdAt', 'ASC' ]],
     };
 
-    const correlations: Array<Correlation> = await Correlation.findAll(queryParams);
+    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
 
     const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
@@ -163,7 +163,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    await Correlation.destroy(queryParams);
+    await CorrelationModel.destroy(queryParams);
   }
 
   public async getCorrelationsByState(state: CorrelationState): Promise<Array<CorrelationFromRepository>> {
@@ -173,7 +173,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const matchingCorrelations: Array<Correlation> = await Correlation.findAll(queryParams);
+    const matchingCorrelations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
     const correlationsWithState: Array<CorrelationFromRepository> =
       matchingCorrelations.map(this._convertTocorrelationRuntimeObject.bind(this));
 
@@ -188,7 +188,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const matchingCorrelation: Correlation = await Correlation.findOne(queryParams);
+    const matchingCorrelation: CorrelationModel = await CorrelationModel.findOne(queryParams);
 
     const noMatchingCorrelationFound: boolean = matchingCorrelation === undefined;
     if (noMatchingCorrelationFound) {
@@ -208,7 +208,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const matchingCorrelation: Correlation = await Correlation.findOne(queryParams);
+    const matchingCorrelation: CorrelationModel = await CorrelationModel.findOne(queryParams);
 
     const noMatchingCorrelationFound: boolean = matchingCorrelation === undefined;
     if (noMatchingCorrelationFound) {
@@ -244,7 +244,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
    * @returns           The ProcessEngine runtime object describing a
    *                    correlation.
    */
-  private _convertTocorrelationRuntimeObject(dataModel: Correlation): CorrelationFromRepository {
+  private _convertTocorrelationRuntimeObject(dataModel: CorrelationModel): CorrelationFromRepository {
 
     const correlation: CorrelationFromRepository = new CorrelationFromRepository();
     correlation.id = dataModel.correlationId;
