@@ -10,7 +10,7 @@ import {SequelizeConnectionManager} from '@essential-projects/sequelize_connecti
 
 import {CorrelationFromRepository, CorrelationState, ICorrelationRepository} from '@process-engine/correlation.contracts';
 
-import {Correlation, ICorrelationAttributes} from './schemas';
+import {Correlation} from './schemas';
 
 const logger: Logger = new Logger('processengine:persistence:correlation_repository');
 
