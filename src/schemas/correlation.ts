@@ -2,7 +2,7 @@ import {AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 's
 
 import {CorrelationState} from '@process-engine/correlation.contracts';
 
-@Table({modelName: 'Correlation', tableName: 'Correlations', version: true})
+@Table({modelName: 'Correlation', tableName: 'Correlations'})
 export class CorrelationModel extends Model<CorrelationModel> {
 
   @AllowNull(false)
