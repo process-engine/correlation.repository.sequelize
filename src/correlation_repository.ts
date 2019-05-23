@@ -4,7 +4,7 @@ import {DestroyOptions, FindOptions} from 'sequelize';
 import {Sequelize, SequelizeOptions} from 'sequelize-typescript';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
-import {BaseError, isEssentialProjectsError, NotFoundError} from '@essential-projects/errors_ts';
+import {BaseError, NotFoundError, isEssentialProjectsError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 
@@ -12,38 +12,39 @@ import {CorrelationFromRepository, CorrelationState, ICorrelationRepository} fro
 
 import {CorrelationModel} from './schemas';
 
-const logger: Logger = new Logger('processengine:persistence:correlation_repository');
+const logger = new Logger('processengine:persistence:correlation_repository');
 
 export class CorrelationRepository implements ICorrelationRepository, IDisposable {
+
   public config: SequelizeOptions;
 
-  private _sequelize: Sequelize;
-  private _connectionManager: SequelizeConnectionManager;
+  private sequelizeInstance: Sequelize;
+  private connectionManager: SequelizeConnectionManager;
 
   constructor(connectionManager: SequelizeConnectionManager) {
-    this._connectionManager = connectionManager;
+    this.connectionManager = connectionManager;
   }
 
   public async initialize(): Promise<void> {
     logger.verbose('Initializing Sequelize connection and loading models...');
-    const connectionAlreadyEstablished: boolean = this._sequelize !== undefined;
+    const connectionAlreadyEstablished = this.sequelizeInstance !== undefined;
     if (connectionAlreadyEstablished) {
       logger.verbose('Repository already initialized. Done.');
 
       return;
     }
-    this._sequelize = await this._connectionManager.getConnection(this.config);
+    this.sequelizeInstance = await this.connectionManager.getConnection(this.config);
 
-    this._sequelize.addModels([CorrelationModel]);
-    await this._sequelize.sync();
+    this.sequelizeInstance.addModels([CorrelationModel]);
+    await this.sequelizeInstance.sync();
 
     logger.verbose('Done.');
   }
 
   public async dispose(): Promise<void> {
     logger.verbose('Disposing connection');
-    await this._connectionManager.destroyConnection(this.config);
-    this._sequelize = undefined;
+    await this.connectionManager.destroyConnection(this.config);
+    this.sequelizeInstance = undefined;
     logger.verbose('Done.');
   }
 
@@ -56,7 +57,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     parentProcessInstanceId?: string,
   ): Promise<void> {
 
-    const createParams: any = {
+    const createParams = {
       correlationId: correlationId,
       processInstanceId: processInstanceId,
       processModelId: processModelId,
@@ -71,9 +72,9 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
   public async getAll(): Promise<Array<CorrelationFromRepository>> {
 
-    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll();
+    const correlations = await CorrelationModel.findAll();
 
-    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
@@ -84,17 +85,17 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       where: {
         correlationId: correlationId,
       },
-      order: [ [ 'createdAt', 'ASC' ]],
+      order: [['createdAt', 'ASC']],
     };
 
-    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
+    const correlations = await CorrelationModel.findAll(queryParams);
 
-    const noCorrelationsFound: boolean = !correlations || correlations.length === 0;
+    const noCorrelationsFound = !correlations || correlations.length === 0;
     if (noCorrelationsFound) {
       throw new NotFoundError(`Correlation with id "${correlationId}" not found.`);
     }
 
-    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
@@ -105,17 +106,17 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       where: {
         processModelId: processModelId,
       },
-      order: [ [ 'createdAt', 'ASC' ]],
+      order: [['createdAt', 'ASC']],
     };
 
-    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
+    const correlations = await CorrelationModel.findAll(queryParams);
 
-    const noCorrelationsFound: boolean = !correlations || correlations.length === 0;
+    const noCorrelationsFound = !correlations || correlations.length === 0;
     if (noCorrelationsFound) {
       throw new NotFoundError(`No correlations for ProcessModel with ID "${processModelId}" found.`);
     }
 
-    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
@@ -128,13 +129,13 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const correlation: CorrelationModel = await CorrelationModel.findOne(queryParams);
+    const correlation = await CorrelationModel.findOne(queryParams);
 
     if (!correlation) {
       throw new NotFoundError(`No correlations for ProcessInstance with ID "${processInstanceId}" found.`);
     }
 
-    const correlationRuntime: CorrelationFromRepository = this._convertTocorrelationRuntimeObject(correlation);
+    const correlationRuntime = this.convertTocorrelationRuntimeObject(correlation);
 
     return correlationRuntime;
   }
@@ -145,12 +146,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       where: {
         parentProcessInstanceId: processInstanceId,
       },
-      order: [ [ 'createdAt', 'ASC' ]],
+      order: [['createdAt', 'ASC']],
     };
 
-    const correlations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
+    const correlations = await CorrelationModel.findAll(queryParams);
 
-    const correlationsRuntime: Array<CorrelationFromRepository> = correlations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
@@ -173,9 +174,8 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const matchingCorrelations: Array<CorrelationModel> = await CorrelationModel.findAll(queryParams);
-    const correlationsWithState: Array<CorrelationFromRepository> =
-      matchingCorrelations.map(this._convertTocorrelationRuntimeObject.bind(this));
+    const matchingCorrelations = await CorrelationModel.findAll(queryParams);
+    const correlationsWithState = matchingCorrelations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsWithState;
   }
@@ -188,9 +188,9 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const matchingCorrelation: CorrelationModel = await CorrelationModel.findOne(queryParams);
+    const matchingCorrelation = await CorrelationModel.findOne(queryParams);
 
-    const noMatchingCorrelationFound: boolean = matchingCorrelation === undefined;
+    const noMatchingCorrelationFound = matchingCorrelation === undefined;
     if (noMatchingCorrelationFound) {
       throw new NotFoundError(`No ProcessInstance '${processInstanceId}' in Correlation ${correlationId} found!`);
     }
@@ -208,29 +208,30 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       },
     };
 
-    const matchingCorrelation: CorrelationModel = await CorrelationModel.findOne(queryParams);
+    const matchingCorrelation = await CorrelationModel.findOne(queryParams);
 
-    const noMatchingCorrelationFound: boolean = matchingCorrelation === undefined;
+    const noMatchingCorrelationFound = matchingCorrelation === undefined;
     if (noMatchingCorrelationFound) {
       throw new NotFoundError(`No ProcessInstance '${processInstanceId}' in Correlation ${correlationId} found!`);
     }
 
     matchingCorrelation.state = CorrelationState.error;
-    matchingCorrelation.error = this._serializeError(error);
+    matchingCorrelation.error = this.serializeError(error);
 
     await matchingCorrelation.save();
   }
 
-  private _serializeError(error: any): string {
+  private serializeError(error: Error | string): string {
 
-    const errorIsFromEssentialProjects: boolean = isEssentialProjectsError(error);
+    const errorIsFromEssentialProjects = isEssentialProjectsError(error);
     if (errorIsFromEssentialProjects) {
       return (error as BaseError).serialize();
     }
 
-    const errorIsString: boolean = typeof error === 'string';
+    const errorIsString = typeof error === 'string';
     if (errorIsString) {
-      return error;
+      // For backwards compatibility.
+      return error as string;
     }
 
     return JSON.stringify(error);
@@ -244,35 +245,36 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
    * @returns           The ProcessEngine runtime object describing a
    *                    correlation.
    */
-  private _convertTocorrelationRuntimeObject(dataModel: CorrelationModel): CorrelationFromRepository {
+  private convertTocorrelationRuntimeObject(dataModel: CorrelationModel): CorrelationFromRepository {
 
-    const correlation: CorrelationFromRepository = new CorrelationFromRepository();
+    const correlation = new CorrelationFromRepository();
     correlation.id = dataModel.correlationId;
     correlation.processInstanceId = dataModel.processInstanceId;
     correlation.processModelId = dataModel.processModelId;
     correlation.processModelHash = dataModel.processModelHash;
     correlation.parentProcessInstanceId = dataModel.parentProcessInstanceId || undefined;
-    correlation.identity = dataModel.identity ? this._tryParse(dataModel.identity) : undefined;
+    correlation.identity = dataModel.identity ? this.tryParse(dataModel.identity) : undefined;
     correlation.createdAt = dataModel.createdAt;
     correlation.updatedAt = dataModel.updatedAt;
     correlation.state = dataModel.state;
 
-    const dataModelHasError: boolean = dataModel.error !== undefined;
+    const dataModelHasError = dataModel.error !== undefined;
     if (dataModelHasError) {
 
-      const essentialProjectsError: Error = this._tryDeserializeEssentialProjectsError(dataModel.error);
+      const essentialProjectsError = this.tryDeserializeEssentialProjectsError(dataModel.error);
 
-      const errorIsFromEssentialProjects: boolean = essentialProjectsError !== undefined;
+      const errorIsFromEssentialProjects = essentialProjectsError !== undefined;
 
       correlation.error = errorIsFromEssentialProjects
         ? essentialProjectsError
-        : this._tryParse(dataModel.error);
+        : this.tryParse(dataModel.error);
     }
 
     return correlation;
   }
 
-  private _tryParse(value: string): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private tryParse(value: string): any {
     try {
       return JSON.parse(value);
     } catch (error) {
@@ -281,11 +283,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     }
   }
 
-  private _tryDeserializeEssentialProjectsError(value: string): Error {
+  private tryDeserializeEssentialProjectsError(value: string): Error {
     try {
       return BaseError.deserialize(value);
     } catch (error) {
       return undefined;
     }
   }
+
 }
