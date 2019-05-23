@@ -1,4 +1,6 @@
-import {AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 'sequelize-typescript';
+import {
+  AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt,
+} from 'sequelize-typescript';
 
 import {CorrelationState} from '@process-engine/correlation.contracts';
 
@@ -42,4 +44,5 @@ export class CorrelationModel extends Model<CorrelationModel> {
 
   @UpdatedAt
   public updatedAt?: Date;
+
 }
