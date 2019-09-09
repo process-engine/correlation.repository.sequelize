@@ -78,7 +78,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
   public async getAll(offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
 
     const correlations = await CorrelationModel.findAll({
-      ...this.createPagination(offset, limit),
+      ...this.buildPagination(offset, limit),
     });
 
     const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
@@ -93,7 +93,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
         correlationId: correlationId,
       },
       order: [['createdAt', 'ASC']],
-      ...this.createPagination(offset, limit),
+      ...this.buildPagination(offset, limit),
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
@@ -115,7 +115,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
         processModelId: processModelId,
       },
       order: [['createdAt', 'ASC']],
-      ...this.createPagination(offset, limit),
+      ...this.buildPagination(offset, limit),
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
@@ -160,7 +160,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
         parentProcessInstanceId: processInstanceId,
       },
       order: [['createdAt', 'ASC']],
-      ...this.createPagination(offset, limit),
+      ...this.buildPagination(offset, limit),
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
@@ -175,7 +175,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       where: {
         state: state,
       },
-      ...this.createPagination(offset, limit),
+      ...this.buildPagination(offset, limit),
     };
 
     const matchingCorrelations = await CorrelationModel.findAll(queryParams);
@@ -306,7 +306,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     }
   }
 
-  private createPagination(offset: number, limit: number): Pagination {
+  private buildPagination(offset: number, limit: number): Pagination {
     const pagination: Pagination = {};
 
     if (offset > 0) {
