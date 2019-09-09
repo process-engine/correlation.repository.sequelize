@@ -14,6 +14,11 @@ import {CorrelationModel} from './schemas';
 
 const logger = new Logger('processengine:persistence:correlation_repository');
 
+type Pagination = {
+  limit?: number;
+  offset?: number;
+};
+
 export class CorrelationRepository implements ICorrelationRepository, IDisposable {
 
   public config: SequelizeOptions;
@@ -70,22 +75,25 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await CorrelationModel.create(createParams);
   }
 
-  public async getAll(): Promise<Array<CorrelationFromRepository>> {
+  public async getAll(offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
 
-    const correlations = await CorrelationModel.findAll();
+    const correlations = await CorrelationModel.findAll({
+      ...this.createPagination(offset, limit),
+    });
 
     const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByCorrelationId(correlationId: string): Promise<Array<CorrelationFromRepository>> {
+  public async getByCorrelationId(correlationId: string, offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
 
     const queryParams: FindOptions = {
       where: {
         correlationId: correlationId,
       },
       order: [['createdAt', 'ASC']],
+      ...this.createPagination(offset, limit),
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
@@ -100,13 +108,14 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     return correlationsRuntime;
   }
 
-  public async getByProcessModelId(processModelId: string): Promise<Array<CorrelationFromRepository>> {
+  public async getByProcessModelId(processModelId: string, offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
 
     const queryParams: FindOptions = {
       where: {
         processModelId: processModelId,
       },
       order: [['createdAt', 'ASC']],
+      ...this.createPagination(offset, limit),
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
@@ -140,13 +149,18 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     return correlationRuntime;
   }
 
-  public async getSubprocessesForProcessInstance(processInstanceId: string): Promise<Array<CorrelationFromRepository>> {
+  public async getSubprocessesForProcessInstance(
+    processInstanceId: string,
+    offset: number = 0,
+    limit: number = 0,
+  ): Promise<Array<CorrelationFromRepository>> {
 
     const queryParams: FindOptions = {
       where: {
         parentProcessInstanceId: processInstanceId,
       },
       order: [['createdAt', 'ASC']],
+      ...this.createPagination(offset, limit),
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
@@ -154,6 +168,20 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
 
     return correlationsRuntime;
+  }
+
+  public async getCorrelationsByState(state: CorrelationState, offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
+    const queryParams: FindOptions = {
+      where: {
+        state: state,
+      },
+      ...this.createPagination(offset, limit),
+    };
+
+    const matchingCorrelations = await CorrelationModel.findAll(queryParams);
+    const correlationsWithState = matchingCorrelations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
+
+    return correlationsWithState;
   }
 
   public async deleteCorrelationByProcessModelId(processModelId: string): Promise<void> {
@@ -165,19 +193,6 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     await CorrelationModel.destroy(queryParams);
-  }
-
-  public async getCorrelationsByState(state: CorrelationState): Promise<Array<CorrelationFromRepository>> {
-    const queryParams: FindOptions = {
-      where: {
-        state: state,
-      },
-    };
-
-    const matchingCorrelations = await CorrelationModel.findAll(queryParams);
-    const correlationsWithState = matchingCorrelations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
-
-    return correlationsWithState;
   }
 
   public async finishProcessInstanceInCorrelation(correlationId: string, processInstanceId: string): Promise<void> {
@@ -289,6 +304,20 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     } catch (error) {
       return undefined;
     }
+  }
+
+  private createPagination(offset: number, limit: number): Pagination {
+    const pagination: Pagination = {};
+
+    if (offset > 0) {
+      pagination.offset = offset;
+    }
+
+    if (limit > 0) {
+      pagination.limit = limit;
+    }
+
+    return pagination;
   }
 
 }
