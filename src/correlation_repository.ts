@@ -98,11 +98,6 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const correlations = await CorrelationModel.findAll(queryParams);
 
-    const noCorrelationsFound = !correlations || correlations.length === 0;
-    if (noCorrelationsFound) {
-      throw new NotFoundError(`Correlation with id "${correlationId}" not found.`);
-    }
-
     const correlationsRuntime = correlations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
     return correlationsRuntime;
@@ -119,11 +114,6 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     const correlations = await CorrelationModel.findAll(queryParams);
-
-    const noCorrelationsFound = !correlations || correlations.length === 0;
-    if (noCorrelationsFound) {
-      throw new NotFoundError(`No correlations for ProcessModel with ID "${processModelId}" found.`);
-    }
 
     const correlationsRuntime = correlations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
