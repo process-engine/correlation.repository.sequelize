@@ -1,6 +1,6 @@
 {
   "name": "@process-engine/correlations.repository.sequelize",
-  "version": "6.2.0",
+  "version": "6.2.0-beta.1",
   "description": "Uses sequelize to access and manipulate correlation data.",
   "main": "dist/commonjs/index.js",
   "typings": "dist/index.d.ts",
