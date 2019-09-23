@@ -8,7 +8,7 @@ import {BaseError, NotFoundError, isEssentialProjectsError} from '@essential-pro
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 
-import {CorrelationFromRepository, CorrelationState, ICorrelationRepository} from '@process-engine/correlation.contracts';
+import {CorrelationState, ICorrelationRepository, ProcessInstanceFromRepository} from '@process-engine/correlation.contracts';
 
 import {CorrelationModel} from './schemas';
 
@@ -75,18 +75,18 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     await CorrelationModel.create(createParams);
   }
 
-  public async getAll(offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
+  public async getAll(offset: number = 0, limit: number = 0): Promise<Array<ProcessInstanceFromRepository>> {
 
     const correlations = await CorrelationModel.findAll({
       ...this.buildPagination(offset, limit),
     });
 
-    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByCorrelationId(correlationId: string, offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
+  public async getByCorrelationId(correlationId: string, offset: number = 0, limit: number = 0): Promise<Array<ProcessInstanceFromRepository>> {
 
     const queryParams: FindOptions = {
       where: {
@@ -98,17 +98,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const correlations = await CorrelationModel.findAll(queryParams);
 
-    const noCorrelationsFound = !correlations || correlations.length === 0;
-    if (noCorrelationsFound) {
-      throw new NotFoundError(`Correlation with id "${correlationId}" not found.`);
-    }
-
-    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByProcessModelId(processModelId: string, offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
+  public async getByProcessModelId(processModelId: string, offset: number = 0, limit: number = 0): Promise<Array<ProcessInstanceFromRepository>> {
 
     const queryParams: FindOptions = {
       where: {
@@ -120,17 +115,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const correlations = await CorrelationModel.findAll(queryParams);
 
-    const noCorrelationsFound = !correlations || correlations.length === 0;
-    if (noCorrelationsFound) {
-      throw new NotFoundError(`No correlations for ProcessModel with ID "${processModelId}" found.`);
-    }
-
-    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getByProcessInstanceId(processInstanceId: string): Promise<CorrelationFromRepository> {
+  public async getByProcessInstanceId(processInstanceId: string): Promise<ProcessInstanceFromRepository> {
 
     const queryParams: FindOptions = {
       where: {
@@ -144,7 +134,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
       throw new NotFoundError(`No correlations for ProcessInstance with ID "${processInstanceId}" found.`);
     }
 
-    const correlationRuntime = this.convertTocorrelationRuntimeObject(correlation);
+    const correlationRuntime = this.convertToRuntimeObject(correlation);
 
     return correlationRuntime;
   }
@@ -153,7 +143,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     processInstanceId: string,
     offset: number = 0,
     limit: number = 0,
-  ): Promise<Array<CorrelationFromRepository>> {
+  ): Promise<Array<ProcessInstanceFromRepository>> {
 
     const queryParams: FindOptions = {
       where: {
@@ -165,12 +155,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
     const correlations = await CorrelationModel.findAll(queryParams);
 
-    const correlationsRuntime = correlations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
+    const correlationsRuntime = correlations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
     return correlationsRuntime;
   }
 
-  public async getCorrelationsByState(state: CorrelationState, offset: number = 0, limit: number = 0): Promise<Array<CorrelationFromRepository>> {
+  public async getCorrelationsByState(state: CorrelationState, offset: number = 0, limit: number = 0): Promise<Array<ProcessInstanceFromRepository>> {
     const queryParams: FindOptions = {
       where: {
         state: state,
@@ -179,7 +169,7 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
     };
 
     const matchingCorrelations = await CorrelationModel.findAll(queryParams);
-    const correlationsWithState = matchingCorrelations.map<CorrelationFromRepository>(this.convertTocorrelationRuntimeObject.bind(this));
+    const correlationsWithState = matchingCorrelations.map<ProcessInstanceFromRepository>(this.convertToRuntimeObject.bind(this));
 
     return correlationsWithState;
   }
@@ -260,18 +250,18 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
    * @returns           The ProcessEngine runtime object describing a
    *                    correlation.
    */
-  private convertTocorrelationRuntimeObject(dataModel: CorrelationModel): CorrelationFromRepository {
+  private convertToRuntimeObject(dataModel: CorrelationModel): ProcessInstanceFromRepository {
 
-    const correlation = new CorrelationFromRepository();
-    correlation.id = dataModel.correlationId;
-    correlation.processInstanceId = dataModel.processInstanceId;
-    correlation.processModelId = dataModel.processModelId;
-    correlation.processModelHash = dataModel.processModelHash;
-    correlation.parentProcessInstanceId = dataModel.parentProcessInstanceId || undefined;
-    correlation.identity = dataModel.identity ? this.tryParse(dataModel.identity) : undefined;
-    correlation.createdAt = dataModel.createdAt;
-    correlation.updatedAt = dataModel.updatedAt;
-    correlation.state = dataModel.state;
+    const processInstance = new ProcessInstanceFromRepository();
+    processInstance.correlationId = dataModel.correlationId;
+    processInstance.processInstanceId = dataModel.processInstanceId;
+    processInstance.processModelId = dataModel.processModelId;
+    processInstance.processModelHash = dataModel.processModelHash;
+    processInstance.parentProcessInstanceId = dataModel.parentProcessInstanceId || undefined;
+    processInstance.identity = dataModel.identity ? this.tryParse(dataModel.identity) : undefined;
+    processInstance.createdAt = dataModel.createdAt;
+    processInstance.updatedAt = dataModel.updatedAt;
+    processInstance.state = dataModel.state;
 
     const dataModelHasError = dataModel.error !== undefined;
     if (dataModelHasError) {
@@ -280,12 +270,12 @@ export class CorrelationRepository implements ICorrelationRepository, IDisposabl
 
       const errorIsFromEssentialProjects = essentialProjectsError !== undefined;
 
-      correlation.error = errorIsFromEssentialProjects
+      processInstance.error = errorIsFromEssentialProjects
         ? essentialProjectsError
         : this.tryParse(dataModel.error);
     }
 
-    return correlation;
+    return processInstance;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
